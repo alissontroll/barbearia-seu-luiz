@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1189,7 +1188,11 @@ Responda SOMENTE sobre a barbearia. Se perguntarem sobre outros assuntos, redire
     var el = document.getElementById('chatMsgs');
     var d = document.createElement('div');
     d.className = 'cmsg bot';
-    d.innerHTML = txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    var html = txt
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\n/g,'<br>')
+      .replace(/https:\/\/wa\.me\/\S*/g, '<br><a href="$&" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:#25D366;color:#fff;text-decoration:none;padding:8px 16px;border-radius:20px;font-size:0.8rem;font-weight:600;box-shadow:0 4px 12px rgba(37,211,102,0.3);">📱 Agendar pelo WhatsApp</a>');
+    d.innerHTML = html;
     el.appendChild(d);
     el.scrollTop = el.scrollHeight;
   }
@@ -1227,7 +1230,7 @@ Responda SOMENTE sobre a barbearia. Se perguntarem sobre outros assuntos, redire
     try {
       var res = await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        headers:{'Content-Type':'application/json','x-api-key':'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','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
         body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYSTEM,messages:msgs})
       });
       var data = await res.json();
