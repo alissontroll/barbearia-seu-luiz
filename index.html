@@ -132,6 +132,8 @@
   .hora-pill.selecionado { background: rgba(201,168,76,0.2); border-color: var(--accent); color: var(--accent); font-weight: 600; }
   .agendar-resumo { background: rgba(37,211,102,0.07); border: 1px solid rgba(37,211,102,0.25); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #ccc; line-height: 1.6; margin-bottom: 10px; }
   .btn-agendar-wpp { width: 100%; background: #25d366; color: #fff; border: none; border-radius: 10px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
+  .hora-pill.bloqueado { opacity: 0.25; cursor: not-allowed; text-decoration: line-through; }
+  .hora-pill.bloqueado:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
   .btn-agendar-wpp:hover { background: #1ebe5a; }
 
   /* ===== ADMIN PANEL ===== */
@@ -556,16 +558,24 @@ function selecionarHora(el) { if(window._selecionarHora) window._selecionarHora(
   var horaSelecionada = null;
   var horariosConfig = {};
 
-  function gerarSlots(abre, fecha) {
+  function gerarSlots(abre, fecha, dataSel) {
     // Horários de 1h em 1h, com pausa de almoço 12:00-14:00
     var slots = [];
     var pF = fecha.split(':').map(Number);
     var mF = pF[0]*60 + pF[1];
     var horarios = [8,9,10,11,12,14,15,16,17,18,19,20];
+
+    // Verificar se é hoje para bloquear horários que já passaram
+    var agora = new Date();
+    var ehHoje = dataSel && dataSel.toDateString() === agora.toDateString();
+    var minutosAgora = agora.getHours()*60 + agora.getMinutes();
+
     for (var i = 0; i < horarios.length; i++) {
       var mSlot = horarios[i] * 60;
       if (mSlot >= 8*60 && mSlot < mF) {
-        slots.push(String(horarios[i]).padStart(2,'0') + ':00');
+        // Bloquear apenas se for hoje E o horário já passou
+        var jaPassou = ehHoje && mSlot <= minutosAgora;
+        slots.push({ hora: String(horarios[i]).padStart(2,'0') + ':00', bloqueado: jaPassou });
       }
     }
     return slots;
@@ -614,7 +624,7 @@ function selecionarHora(el) { if(window._selecionarHora) window._selecionarHora(
               div.classList.add('selecionado');
               dataSelecionada = dt;
               horaSelecionada = null;
-              mostrarHorarios(cfn.abre, cfn.fecha);
+              mostrarHorarios(cfn.abre, cfn.fecha, dt);
             });
           })(conf, data);
         }
@@ -624,15 +634,17 @@ function selecionarHora(el) { if(window._selecionarHora) window._selecionarHora(
     }
   }
 
-  function mostrarHorarios(abre, fecha) {
+  function mostrarHorarios(abre, fecha, dt) {
     var wrap = document.getElementById('horarios-disponiveis');
     var grid = document.getElementById('hora-grid');
-    var slots = gerarSlots(abre, fecha);
-    grid.innerHTML = slots.map(function(h) {
-      return '<div class="hora-pill" data-hora="' + h + '">' + h + '</div>';
+    var slots = gerarSlots(abre, fecha, dt);
+    grid.innerHTML = slots.map(function(s) {
+      if (s.bloqueado) {
+        return '<div class="hora-pill bloqueado" title="Horário indisponível">' + s.hora + '</div>';
+      }
+      return '<div class="hora-pill" data-hora="' + s.hora + '">' + s.hora + '</div>';
     }).join('');
-    // Usar addEventListener em vez de onclick= para evitar conflito
-    grid.querySelectorAll('.hora-pill').forEach(function(pill) {
+    grid.querySelectorAll('.hora-pill:not(.bloqueado)').forEach(function(pill) {
       pill.addEventListener('click', function() {
         grid.querySelectorAll('.hora-pill').forEach(function(p){ p.classList.remove('selecionado'); });
         pill.classList.add('selecionado');
