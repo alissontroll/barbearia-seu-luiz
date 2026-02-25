@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -981,6 +982,273 @@ window._enviarMensagem = function() {
 // Utilitário
 function esc(t) { return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+</script>
+
+<!-- ===== CHATBOT IA ===== -->
+<style>
+  .chat-fab {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 58px; height: 58px;
+    background: linear-gradient(135deg, #c9a84c, #a07830);
+    border-radius: 50%; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 28px rgba(201,168,76,0.45);
+    z-index: 9990; transition: transform 0.2s;
+  }
+  .chat-fab:hover { transform: scale(1.08); }
+  .chat-fab svg { width: 26px; height: 26px; fill: #0f0f0f; }
+  .chat-fab-notif {
+    position: absolute; top: 2px; right: 2px;
+    width: 14px; height: 14px; background: #e74c3c;
+    border-radius: 50%; border: 2px solid #0f0f0f;
+    animation: chatPulse 2s infinite;
+  }
+  @keyframes chatPulse {
+    0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.3);opacity:0.7}
+  }
+  .chat-win {
+    position: fixed; bottom: 92px; right: 24px;
+    width: 350px; max-width: calc(100vw - 32px);
+    height: 500px; max-height: calc(100vh - 110px);
+    background: #111; border: 1px solid #2a2a2a;
+    border-radius: 20px; display: flex; flex-direction: column;
+    overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.8);
+    z-index: 9989;
+    transform: translateY(16px) scale(0.96);
+    opacity: 0; pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .chat-win.aberto { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
+  .chat-head {
+    background: linear-gradient(135deg,#1a1500,#0f0f0f);
+    border-bottom: 1px solid #2a2200;
+    padding: 14px 16px; display: flex; align-items: center; gap: 10px; flex-shrink:0;
+  }
+  .chat-head-av {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg,#c9a84c,#a07830);
+    display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;
+  }
+  .chat-head-info h3 { font-family:"Playfair Display",serif; font-size:0.9rem; color:#c9a84c; }
+  .chat-head-info p { font-size:0.7rem; color:#666; display:flex; align-items:center; gap:4px; }
+  .chat-online { width:6px;height:6px;background:#2ecc71;border-radius:50%;display:inline-block; }
+  .chat-x { margin-left:auto; background:none; border:none; color:#555; cursor:pointer; font-size:1.1rem; padding:4px; transition:color 0.2s; }
+  .chat-x:hover { color:#f0ece4; }
+  .chat-msgs {
+    flex:1; overflow-y:auto; padding:14px;
+    display:flex; flex-direction:column; gap:8px; scroll-behavior:smooth;
+  }
+  .chat-msgs::-webkit-scrollbar{width:3px}
+  .chat-msgs::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+  .cmsg {
+    max-width:84%; padding:9px 13px; border-radius:14px;
+    font-size:0.83rem; line-height:1.5; animation:cmsgIn 0.2s ease;
+  }
+  @keyframes cmsgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .cmsg.bot { background:#1c1c1c; border:1px solid #2a2a2a; color:#ddd; align-self:flex-start; border-bottom-left-radius:3px; }
+  .cmsg.user { background:linear-gradient(135deg,#c9a84c,#a07830); color:#000; align-self:flex-end; border-bottom-right-radius:3px; font-weight:500; }
+  .cmsg.typing { background:#1c1c1c; border:1px solid #2a2a2a; align-self:flex-start; padding:11px 14px; }
+  .tdots { display:flex;gap:4px;align-items:center; }
+  .tdots span { width:6px;height:6px;background:#c9a84c;border-radius:50%;animation:tdot 1.2s infinite; }
+  .tdots span:nth-child(2){animation-delay:0.2s} .tdots span:nth-child(3){animation-delay:0.4s}
+  @keyframes tdot{0%,100%{opacity:0.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
+  .chat-qr { display:flex;flex-wrap:wrap;gap:5px;padding:0 12px 8px;flex-shrink:0; }
+  .cqr {
+    background:#1c1c1c; border:1px solid rgba(201,168,76,0.3); color:#c9a84c;
+    padding:5px 11px; border-radius:18px; font-size:0.75rem; cursor:pointer;
+    transition:all 0.2s; font-family:"DM Sans",sans-serif;
+  }
+  .cqr:hover { background:#c9a84c; color:#000; }
+  .chat-inp-area {
+    border-top:1px solid #1e1e1e; padding:10px 12px;
+    display:flex; gap:7px; align-items:center; flex-shrink:0; background:#0f0f0f;
+  }
+  .chat-inp {
+    flex:1; background:#1c1c1c; border:1px solid #2a2a2a; border-radius:20px;
+    padding:9px 14px; color:#f0ece4; font-family:"DM Sans",sans-serif;
+    font-size:0.83rem; outline:none; transition:border-color 0.2s;
+  }
+  .chat-inp:focus{border-color:#c9a84c55}
+  .chat-inp::placeholder{color:#444}
+  .chat-send {
+    width:36px;height:36px; background:linear-gradient(135deg,#c9a84c,#a07830);
+    border:none;border-radius:50%;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s;
+  }
+  .chat-send:hover{transform:scale(1.1)}
+  .chat-send svg{width:15px;height:15px;fill:#000}
+  .chat-send:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+  .chat-pw{text-align:center;font-size:0.62rem;color:#2a2a2a;padding:4px 0 2px;flex-shrink:0;}
+</style>
+
+<!-- Botão flutuante -->
+<button class="chat-fab" onclick="chatToggle()" title="Falar com assistente">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+  <div class="chat-fab-notif" id="chatNotif"></div>
+</button>
+
+<!-- Janela do chat -->
+<div class="chat-win" id="chatWin">
+  <div class="chat-head">
+    <div class="chat-head-av">✂️</div>
+    <div class="chat-head-info">
+      <h3>Assistente · Barbearia Seu Luiz</h3>
+      <p><span class="chat-online"></span> Online agora</p>
+    </div>
+    <button class="chat-x" onclick="chatToggle()">✕</button>
+  </div>
+  <div class="chat-msgs" id="chatMsgs"></div>
+  <div class="chat-qr" id="chatQR"></div>
+  <div class="chat-inp-area">
+    <input class="chat-inp" id="chatInp" placeholder="Digite sua mensagem..." onkeydown="if(event.key==='Enter')chatSend()">
+    <button class="chat-send" id="chatSendBtn" onclick="chatSend()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+  <div class="chat-pw">✦ Powered by Claude AI ✦</div>
+</div>
+
+<script>
+(function(){
+  var SYSTEM = `Você é o assistente virtual da Barbearia Seu Luiz, localizada em Agrestina, PE. Responda de forma simpática, acolhedora e informal. Use emojis com moderação.
+
+SOBRE A BARBEARIA:
+- Nome: Barbearia Seu Luiz
+- Fundada em: 10 de novembro de 2018
+- História: O nome é uma homenagem ao Seu Luiz, avô do barbeiro Everton — o grande amor da sua vida. Um gesto de carinho e gratidão à sua memória.
+- Endereço: R. Cel. Manoel Alves, 115 — Agrestina, PE
+- WhatsApp: (81) 99542-5522
+
+SOBRE O BARBEIRO:
+- Nome: Everton
+- É muito paciente, carinhoso e dedicado
+- É muito procurado por pais de crianças com TEA (autismo), TDAH e outras condições neurodivergentes
+- Sabe tratar bem cada cliente com respeito e calma
+- Atende crianças e adultos neurodivergentes com excelência
+
+ATENDIMENTO NEURODIVERGENTE:
+- Ambiente calmo, sem barulhos desnecessários e sem julgamentos
+- Atendimento sem pressa, no tempo do cliente
+- Everton é paciente e experiente com crianças e adultos com TEA e TDAH
+- Comunicação clara e gentil durante todo o atendimento
+- Espaço acolhedor para toda a família
+- Corte especial para autistas disponível
+
+SERVIÇOS E PREÇOS:
+- Cabelo: R$ 25
+- Barba: R$ 15
+- Barba Terapia: R$ 25
+- Sobrancelha: R$ 10
+- Pezinho: R$ 10
+- Corte para autista (atendimento neurodivergente especial): R$ 30
+
+HORÁRIOS:
+- Segunda a quinta: 08h às 18h30
+- Sexta e sábado: 08h às 20h
+- Domingo: Fechado
+
+AGENDAMENTO: Quando o cliente quiser agendar, direcione para o WhatsApp: https://wa.me/5581995425522
+
+Responda SOMENTE sobre a barbearia. Se perguntarem sobre outros assuntos, redirecione gentilmente. Nunca invente informações.`;
+
+  var msgs = [];
+  var aberto = false;
+  var carregando = false;
+
+  var qrs = [
+    {l:"✂️ Serviços e preços", t:"Quais são os serviços e preços?"},
+    {l:"🕐 Horários", t:"Quais são os horários de funcionamento?"},
+    {l:"🧩 Atend. neurodivergente", t:"Como é o atendimento para neurodivergentes?"},
+    {l:"👤 Sobre o Everton", t:"Me conta sobre o barbeiro Everton"},
+    {l:"📖 História da barbearia", t:"Qual é a história da barbearia?"},
+    {l:"📅 Agendar", t:"Quero agendar um horário"},
+  ];
+
+  window.chatToggle = function() {
+    aberto = !aberto;
+    document.getElementById('chatWin').classList.toggle('aberto', aberto);
+    document.getElementById('chatNotif').style.display = 'none';
+    if (aberto && msgs.length === 0) {
+      setTimeout(function(){ addBot("Olá! 👋 Sou o assistente virtual da **Barbearia Seu Luiz**. Posso te ajudar com informações sobre serviços, preços, horários, nosso barbeiro Everton e muito mais. Como posso te ajudar?"); }, 350);
+      setTimeout(showQR, 850);
+    }
+  };
+
+  function showQR() {
+    var el = document.getElementById('chatQR');
+    el.innerHTML = '';
+    qrs.forEach(function(q){
+      var b = document.createElement('button');
+      b.className = 'cqr'; b.textContent = q.l;
+      b.onclick = function(){ el.innerHTML=''; chatSend(q.t); };
+      el.appendChild(b);
+    });
+  }
+
+  function addBot(txt) {
+    var el = document.getElementById('chatMsgs');
+    var d = document.createElement('div');
+    d.className = 'cmsg bot';
+    d.innerHTML = txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    el.appendChild(d);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function addUser(txt) {
+    var el = document.getElementById('chatMsgs');
+    var d = document.createElement('div');
+    d.className = 'cmsg user'; d.textContent = txt;
+    el.appendChild(d);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function showTyping() {
+    var el = document.getElementById('chatMsgs');
+    var d = document.createElement('div');
+    d.className = 'cmsg typing'; d.id = 'chatTyping';
+    d.innerHTML = '<div class="tdots"><span></span><span></span><span></span></div>';
+    el.appendChild(d); el.scrollTop = el.scrollHeight;
+  }
+
+  function hideTyping() { var e = document.getElementById('chatTyping'); if(e) e.remove(); }
+
+  window.chatSend = async function(override) {
+    if (carregando) return;
+    var inp = document.getElementById('chatInp');
+    var txt = override || inp.value.trim();
+    if (!txt) return;
+    inp.value = '';
+    addUser(txt);
+    document.getElementById('chatQR').innerHTML = '';
+    msgs.push({role:'user', content:txt});
+    carregando = true;
+    document.getElementById('chatSendBtn').disabled = true;
+    showTyping();
+    try {
+      var res = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYSTEM,messages:msgs})
+      });
+      var data = await res.json();
+      hideTyping();
+      var reply = (data.content && data.content[0] && data.content[0].text) || 'Desculpe, não consegui responder agora. Tente novamente!';
+      msgs.push({role:'assistant', content:reply});
+      addBot(reply);
+      setTimeout(showQR, 300);
+    } catch(e) {
+      hideTyping();
+      addBot('Ops, tive um problema de conexão. Fale direto pelo WhatsApp: https://wa.me/5581995425522 😊');
+    }
+    carregando = false;
+    document.getElementById('chatSendBtn').disabled = false;
+  };
+
+  // Notificação ao carregar
+  setTimeout(function(){
+    if (!aberto) document.getElementById('chatNotif').style.display = 'block';
+  }, 2500);
+})();
 </script>
 </body>
 </html>
