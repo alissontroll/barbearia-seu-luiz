@@ -424,10 +424,31 @@
           </div>
           <div class="cal-dias" id="cal-dias"></div>
         </div>
-        <!-- Horários -->
+        <!-- Horário -->
         <div id="horarios-disponiveis" style="display:none;">
-          <div style="font-size:11px;letter-spacing:2px;color:#555;text-transform:uppercase;margin:14px 0 8px;">Horários disponíveis</div>
-          <div class="hora-grid" id="hora-grid"></div>
+          <div style="font-size:11px;letter-spacing:2px;color:#555;text-transform:uppercase;margin:14px 0 10px;">Escolha o horário</div>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;text-align:center;">
+              <div style="font-size:11px;color:#888;margin-bottom:6px;">☀️ Manhã</div>
+              <input type="time" id="hora-manha" min="08:00" max="12:00"
+                style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 6px;color:var(--text);font-size:17px;font-weight:600;outline:none;font-family:inherit;text-align:center;cursor:pointer;box-sizing:border-box;"
+                onfocus="this.style.borderColor='rgba(201,168,76,0.5)';document.getElementById('hora-tarde').value='';"
+                onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+                onchange="confirmarHora(this.value)">
+              <div style="font-size:10px;color:#555;margin-top:4px;">08:00 – 12:00</div>
+            </div>
+            <div style="display:flex;align-items:center;color:#444;font-size:18px;padding-bottom:18px;">|</div>
+            <div style="flex:1;text-align:center;">
+              <div style="font-size:11px;color:#888;margin-bottom:6px;">🌆 Tarde</div>
+              <input type="time" id="hora-tarde" min="14:00" max="20:00"
+                style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 6px;color:var(--text);font-size:17px;font-weight:600;outline:none;font-family:inherit;text-align:center;cursor:pointer;box-sizing:border-box;"
+                onfocus="this.style.borderColor='rgba(201,168,76,0.5)';document.getElementById('hora-manha').value='';"
+                onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+                onchange="confirmarHora(this.value)">
+              <div style="font-size:10px;color:#555;margin-top:4px;" id="label-tarde">14:00 – 18:30</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#444;text-align:center;margin-top:10px;padding:6px;background:rgba(255,255,255,0.03);border-radius:8px;">🍽️ Almoço: 12:00 – 14:00</div>
         </div>
         <!-- Confirmar -->
         <div id="agendar-confirmar" style="display:none;margin-top:14px;">
@@ -543,6 +564,7 @@ function salvarHorarios() { if(window._salvarHorarios) window._salvarHorarios();
 function enviarMensagem() { if(window._enviarMensagem) window._enviarMensagem(); }
 function mudaMes(dir) { if(window._mudaMes) window._mudaMes(dir); }
 function selecionarHora(el) { if(window._selecionarHora) window._selecionarHora(el); }
+function confirmarHora(hora) { if(window.confirmarHora) window.confirmarHora(hora); }
 </script>
 
 <!-- CALENDÁRIO: script normal (não-module) para acessar onclick= -->
@@ -575,7 +597,9 @@ function selecionarHora(el) { if(window._selecionarHora) window._selecionarHora(
       if (mSlot >= 8*60 && mSlot < mF) {
         // Bloquear apenas se for hoje E o horário já passou
         var jaPassou = ehHoje && mSlot <= minutosAgora;
-        slots.push({ hora: String(horarios[i]).padStart(2,'0') + ':00', bloqueado: jaPassou });
+        if (!jaPassou) {
+          slots.push({ hora: String(horarios[i]).padStart(2,'0') + ':00', bloqueado: false });
+        }
       }
     }
     return slots;
@@ -612,7 +636,7 @@ function selecionarHora(el) { if(window._selecionarHora) window._selecionarHora(
         } else if (dow === 5 || dow === 6) {
           conf = { aberto: true, abre: '08:00', fecha: '20:00' }; // Sex e Sáb
         } else {
-          conf = { aberto: true, abre: '08:00', fecha: '18:00' }; // Seg a Qui
+          conf = { aberto: true, abre: '08:00', fecha: '18:30' }; // Seg a Qui
         }
         if (!conf || conf.aberto === false) {
           div.classList.add('fechado');
@@ -636,25 +660,23 @@ function selecionarHora(el) { if(window._selecionarHora) window._selecionarHora(
 
   function mostrarHorarios(abre, fecha, dt) {
     var wrap = document.getElementById('horarios-disponiveis');
-    var grid = document.getElementById('hora-grid');
-    var slots = gerarSlots(abre, fecha, dt);
-    grid.innerHTML = slots.map(function(s) {
-      if (s.bloqueado) {
-        return '<div class="hora-pill bloqueado" title="Horário indisponível">' + s.hora + '</div>';
-      }
-      return '<div class="hora-pill" data-hora="' + s.hora + '">' + s.hora + '</div>';
-    }).join('');
-    grid.querySelectorAll('.hora-pill:not(.bloqueado)').forEach(function(pill) {
-      pill.addEventListener('click', function() {
-        grid.querySelectorAll('.hora-pill').forEach(function(p){ p.classList.remove('selecionado'); });
-        pill.classList.add('selecionado');
-        horaSelecionada = pill.dataset.hora;
-        atualizarResumo();
-      });
-    });
+    var dow = dt.getDay();
+    var fimTarde = (dow === 5 || dow === 6) ? '20:00' : '18:30';
+    // Ajustar max do input da tarde conforme o dia
+    document.getElementById('hora-tarde').max = fimTarde;
+    document.getElementById('label-tarde').textContent = '14:00 – ' + fimTarde;
+    // Limpar valores anteriores
+    document.getElementById('hora-manha').value = '';
+    document.getElementById('hora-tarde').value = '';
     wrap.style.display = 'block';
     document.getElementById('agendar-confirmar').style.display = 'none';
   }
+
+  window.confirmarHora = function(hora) {
+    if (!hora) return;
+    horaSelecionada = hora;
+    atualizarResumo();
+  };
 
   function atualizarResumo() {
     if (!dataSelecionada || !horaSelecionada) return;
