@@ -106,6 +106,34 @@
   @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
   @keyframes spin { to { transform:rotate(360deg); } }
 
+  /* ---- AGENDAMENTO CARD ---- */
+  .card-agendar { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; animation: fadeUp 0.5s ease both; }
+  .agendar-header { display: flex; align-items: center; gap: 16px; padding: 16px 20px; cursor: pointer; user-select: none; }
+  .agendar-body { overflow: hidden; max-height: 0; transition: max-height 0.45s ease, padding 0.3s ease; padding: 0 16px; }
+  .agendar-body.aberto { max-height: 900px; padding: 0 16px 18px; }
+  .cal-wrap { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; }
+  .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .cal-btn { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25); border-radius: 8px; color: var(--accent); font-size: 18px; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+  .cal-btn:hover { background: rgba(201,168,76,0.2); }
+  .cal-mes-label { font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: 0.5px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px; }
+  .cal-dow { text-align: center; font-size: 10px; color: #555; padding: 4px 0; font-weight: 500; letter-spacing: 0.5px; }
+  .cal-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal-dia { border-radius: 8px; padding: 7px 4px; text-align: center; font-size: 13px; cursor: pointer; transition: all 0.18s; color: var(--text); }
+  .cal-dia:empty { cursor: default; }
+  .cal-dia.passado { color: #3a3a3a; cursor: not-allowed; }
+  .cal-dia.fechado { color: #3a3a3a; cursor: not-allowed; text-decoration: line-through; }
+  .cal-dia.disponivel:hover { background: rgba(201,168,76,0.15); }
+  .cal-dia.selecionado { background: var(--accent); color: #0f0f0f; font-weight: 700; }
+  .cal-dia.hoje { border: 1px solid rgba(201,168,76,0.35); }
+  .hora-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .hora-pill { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 9px 4px; text-align: center; font-size: 12px; cursor: pointer; color: var(--text); transition: all 0.18s; }
+  .hora-pill:hover { background: rgba(201,168,76,0.12); border-color: rgba(201,168,76,0.3); }
+  .hora-pill.selecionado { background: rgba(201,168,76,0.2); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .agendar-resumo { background: rgba(37,211,102,0.07); border: 1px solid rgba(37,211,102,0.25); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #ccc; line-height: 1.6; margin-bottom: 10px; }
+  .btn-agendar-wpp { width: 100%; background: #25d366; color: #fff; border: none; border-radius: 10px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
+  .btn-agendar-wpp:hover { background: #1ebe5a; }
+
   /* ===== ADMIN PANEL ===== */
   #admin-login-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); align-items: center; justify-content: center; }
   #admin-login-overlay.show { display: flex; }
@@ -365,17 +393,50 @@
       <div id="horarios-lista"></div>
     </div>
 
-    <!-- Agendamentos -->
-    <a href="https://wa.me/5581995425522?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20um%20hor%C3%A1rio%20na%20Barbearia%20Seu%20Luiz." class="card-link" target="_blank" style="animation-delay:0.1s;">
-      <div class="icon-wrap" style="background:rgba(37,211,102,0.1);">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+    <!-- Agendamentos com Calendário -->
+    <div class="card-agendar" id="card-agendar" style="animation-delay:0.1s;">
+      <div class="agendar-header" onclick="toggleAgendar()">
+        <div class="icon-wrap" style="background:rgba(37,211,102,0.1);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">Agendamentos</div>
+          <div class="card-sub" id="agendar-sub">Escolha data e horário</div>
+        </div>
+        <span class="arrow" id="agendar-arrow">›</span>
       </div>
-      <div class="card-content">
-        <div class="card-title">Agendamentos</div>
-        <div class="card-sub">Clique para agendar pelo WhatsApp</div>
+      <div class="agendar-body" id="agendar-body">
+        <!-- Nome -->
+        <div style="padding:0 4px 12px;">
+          <input type="text" id="ag-nome" placeholder="Seu nome" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;" onfocus="this.style.borderColor='rgba(201,168,76,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+        </div>
+        <!-- Calendário -->
+        <div class="cal-wrap">
+          <div class="cal-nav">
+            <button class="cal-btn" onclick="mudaMes(-1)">‹</button>
+            <span class="cal-mes-label" id="cal-mes-label"></span>
+            <button class="cal-btn" onclick="mudaMes(1)">›</button>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-dow">Dom</div><div class="cal-dow">Seg</div><div class="cal-dow">Ter</div><div class="cal-dow">Qua</div><div class="cal-dow">Qui</div><div class="cal-dow">Sex</div><div class="cal-dow">Sáb</div>
+          </div>
+          <div class="cal-dias" id="cal-dias"></div>
+        </div>
+        <!-- Horários -->
+        <div id="horarios-disponiveis" style="display:none;">
+          <div style="font-size:11px;letter-spacing:2px;color:#555;text-transform:uppercase;margin:14px 0 8px;">Horários disponíveis</div>
+          <div class="hora-grid" id="hora-grid"></div>
+        </div>
+        <!-- Confirmar -->
+        <div id="agendar-confirmar" style="display:none;margin-top:14px;">
+          <div class="agendar-resumo" id="agendar-resumo"></div>
+          <button class="btn-agendar-wpp" id="btn-agendar-wpp">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+            Confirmar pelo WhatsApp
+          </button>
+        </div>
       </div>
-      <span class="arrow">›</span>
-    </a>
+    </div>
 
     <!-- Como Chegar -->
     <a href="https://www.google.com/maps/search/?api=1&query=R.Cel.Manoel+Alves,+115,+Agrestina,+PE,+55495-000" class="card-link" target="_blank" style="animation-delay:0.2s;">
@@ -449,6 +510,10 @@ function toggleContato() {
   document.getElementById('contato-body').classList.toggle('aberto');
   document.getElementById('contato-arrow').classList.toggle('aberto');
 }
+function toggleAgendar() {
+  document.getElementById('agendar-body').classList.toggle('aberto');
+  document.getElementById('agendar-arrow').classList.toggle('aberto');
+}
 function toggleDiaFechado(i) {
   var fechado = document.getElementById('h-fechado-' + i).checked;
   document.getElementById('h-abre-' + i).disabled = fechado;
@@ -474,6 +539,157 @@ function marcarLida(btn) { if(window._marcarLida) window._marcarLida(btn); }
 function limparAlertas() { if(window._limparAlertas) window._limparAlertas(); }
 function salvarHorarios() { if(window._salvarHorarios) window._salvarHorarios(); }
 function enviarMensagem() { if(window._enviarMensagem) window._enviarMensagem(); }
+function mudaMes(dir) { if(window._mudaMes) window._mudaMes(dir); }
+function selecionarHora(el) { if(window._selecionarHora) window._selecionarHora(el); }
+</script>
+
+<!-- CALENDÁRIO: script normal (não-module) para acessar onclick= -->
+<script>
+(function() {
+  var MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var MAP_DIA = { 0:'Domingo', 1:'Segunda', 2:'Terça', 3:'Quarta', 4:'Quinta', 5:'Sexta', 6:'Sábado' };
+
+  var hoje = new Date();
+  var calAno = hoje.getFullYear();
+  var calMes = hoje.getMonth();
+  var dataSelecionada = null;
+  var horaSelecionada = null;
+  var horariosConfig = {};
+
+  function gerarSlots(abre, fecha) {
+    // Horários de 1h em 1h, com pausa de almoço 12:00-14:00
+    var slots = [];
+    var pF = fecha.split(':').map(Number);
+    var mF = pF[0]*60 + pF[1];
+    var horarios = [8,9,10,11,12,14,15,16,17,18,19,20];
+    for (var i = 0; i < horarios.length; i++) {
+      var mSlot = horarios[i] * 60;
+      if (mSlot >= 8*60 && mSlot < mF) {
+        slots.push(String(horarios[i]).padStart(2,'0') + ':00');
+      }
+    }
+    return slots;
+  }
+
+  var fbCarregado = false; // flag: Firebase já respondeu?
+
+  function renderCal() {
+    var labelEl = document.getElementById('cal-mes-label');
+    if (!labelEl) return;
+    labelEl.textContent = MESES[calMes] + ' ' + calAno;
+    var cont = document.getElementById('cal-dias');
+    cont.innerHTML = '';
+    var primeiro = new Date(calAno, calMes, 1).getDay();
+    var ultimo = new Date(calAno, calMes + 1, 0).getDate();
+    var hoje0 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    for (var i = 0; i < primeiro; i++) cont.appendChild(document.createElement('div'));
+    for (var d = 1; d <= ultimo; d++) {
+      var data = new Date(calAno, calMes, d);
+      var div = document.createElement('div');
+      div.className = 'cal-dia';
+      div.textContent = d;
+      if (data.toDateString() === hoje.toDateString()) div.classList.add('hoje');
+      if (data < hoje0) {
+        div.classList.add('passado');
+      } else {
+        // Se Firebase ainda não carregou, tratar todos como disponíveis (horário padrão 08-18)
+        // Se carregou e horariosConfig está vazio, idem (barbearia não configurou horários)
+        // Horários: Seg-Qui 08:00-18:00 | Sex-Sáb 08:00-20:00 | Dom fechado
+        var dow = data.getDay();
+        var conf;
+        if (dow === 0) {
+          conf = null; // Domingo fechado
+        } else if (dow === 5 || dow === 6) {
+          conf = { aberto: true, abre: '08:00', fecha: '20:00' }; // Sex e Sáb
+        } else {
+          conf = { aberto: true, abre: '08:00', fecha: '18:00' }; // Seg a Qui
+        }
+        if (!conf || conf.aberto === false) {
+          div.classList.add('fechado');
+        } else {
+          div.classList.add('disponivel');
+          (function(cfn, dt) {
+            div.addEventListener('click', function() {
+              document.querySelectorAll('.cal-dia').forEach(function(e){ e.classList.remove('selecionado'); });
+              div.classList.add('selecionado');
+              dataSelecionada = dt;
+              horaSelecionada = null;
+              mostrarHorarios(cfn.abre, cfn.fecha);
+            });
+          })(conf, data);
+        }
+      }
+      if (dataSelecionada && data.toDateString() === dataSelecionada.toDateString()) div.classList.add('selecionado');
+      cont.appendChild(div);
+    }
+  }
+
+  function mostrarHorarios(abre, fecha) {
+    var wrap = document.getElementById('horarios-disponiveis');
+    var grid = document.getElementById('hora-grid');
+    var slots = gerarSlots(abre, fecha);
+    grid.innerHTML = slots.map(function(h) {
+      return '<div class="hora-pill" data-hora="' + h + '">' + h + '</div>';
+    }).join('');
+    // Usar addEventListener em vez de onclick= para evitar conflito
+    grid.querySelectorAll('.hora-pill').forEach(function(pill) {
+      pill.addEventListener('click', function() {
+        grid.querySelectorAll('.hora-pill').forEach(function(p){ p.classList.remove('selecionado'); });
+        pill.classList.add('selecionado');
+        horaSelecionada = pill.dataset.hora;
+        atualizarResumo();
+      });
+    });
+    wrap.style.display = 'block';
+    document.getElementById('agendar-confirmar').style.display = 'none';
+  }
+
+  function atualizarResumo() {
+    if (!dataSelecionada || !horaSelecionada) return;
+    var dataStr = dataSelecionada.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
+    document.getElementById('agendar-resumo').innerHTML = '📅 <strong>' + dataStr + '</strong><br>⏰ <strong>' + horaSelecionada + '</strong>';
+    document.getElementById('agendar-confirmar').style.display = 'block';
+    var btn = document.getElementById('btn-agendar-wpp');
+    btn.onclick = function() {
+      var nome = (document.getElementById('ag-nome').value || '').trim();
+      var msg = encodeURIComponent('Olá! Gostaria de agendar um horário na Barbearia Seu Luiz.\n' +
+        (nome ? 'Nome: ' + nome + '\n' : '') +
+        'Data: ' + dataStr + '\n' +
+        'Horário: ' + horaSelecionada);
+      window.open('https://wa.me/5581995425522?text=' + msg, '_blank');
+    };
+  }
+
+  window._mudaMes = function(dir) {
+    calMes += dir;
+    if (calMes > 11) { calMes = 0; calAno++; }
+    if (calMes < 0)  { calMes = 11; calAno--; }
+    renderCal();
+  };
+
+  // Aguardar Firebase ficar disponível e buscar horários
+  var tentativas = 0;
+  // Renderizar imediatamente com horário padrão (não esperar Firebase)
+  renderCal();
+  // Abrir card de agendamentos automaticamente
+  document.addEventListener('DOMContentLoaded', function() {
+    var body = document.getElementById('agendar-body');
+    var arrow = document.getElementById('agendar-arrow');
+    if (body) body.classList.add('aberto');
+    if (arrow) arrow.classList.add('aberto');
+  });
+  var checkFB = setInterval(function() {
+    tentativas++;
+    if (tentativas > 50) { clearInterval(checkFB); return; }
+    if (!window._db || !window._ref || !window._onValue) return;
+    clearInterval(checkFB);
+    window._onValue(window._ref(window._db, 'horarios'), function(snap) {
+      fbCarregado = true;
+      horariosConfig = (snap && snap.val()) ? snap.val() : {};
+      renderCal(); // re-renderizar com dados reais
+    });
+  }, 300);
+})();
 </script>
 
 <script type="module">
@@ -981,277 +1197,6 @@ window._enviarMensagem = function() {
 // Utilitário
 function esc(t) { return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-</script>
-
-<!-- ===== CHATBOT IA ===== -->
-<style>
-  .chat-fab {
-    position: fixed; bottom: 24px; right: 24px;
-    width: 58px; height: 58px;
-    background: linear-gradient(135deg, #c9a84c, #a07830);
-    border-radius: 50%; border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 28px rgba(201,168,76,0.45);
-    z-index: 9990; transition: transform 0.2s;
-  }
-  .chat-fab:hover { transform: scale(1.08); }
-  .chat-fab svg { width: 26px; height: 26px; fill: #0f0f0f; }
-  .chat-fab-notif {
-    position: absolute; top: 2px; right: 2px;
-    width: 14px; height: 14px; background: #e74c3c;
-    border-radius: 50%; border: 2px solid #0f0f0f;
-    animation: chatPulse 2s infinite;
-  }
-  @keyframes chatPulse {
-    0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.3);opacity:0.7}
-  }
-  .chat-win {
-    position: fixed; bottom: 92px; right: 24px;
-    width: 350px; max-width: calc(100vw - 32px);
-    height: 500px; max-height: calc(100vh - 110px);
-    background: #111; border: 1px solid #2a2a2a;
-    border-radius: 20px; display: flex; flex-direction: column;
-    overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.8);
-    z-index: 9989;
-    transform: translateY(16px) scale(0.96);
-    opacity: 0; pointer-events: none;
-    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  .chat-win.aberto { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
-  .chat-head {
-    background: linear-gradient(135deg,#1a1500,#0f0f0f);
-    border-bottom: 1px solid #2a2200;
-    padding: 14px 16px; display: flex; align-items: center; gap: 10px; flex-shrink:0;
-  }
-  .chat-head-av {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: linear-gradient(135deg,#c9a84c,#a07830);
-    display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;
-  }
-  .chat-head-info h3 { font-family:"Playfair Display",serif; font-size:0.9rem; color:#c9a84c; }
-  .chat-head-info p { font-size:0.7rem; color:#666; display:flex; align-items:center; gap:4px; }
-  .chat-online { width:6px;height:6px;background:#2ecc71;border-radius:50%;display:inline-block; }
-  .chat-x { margin-left:auto; background:none; border:none; color:#555; cursor:pointer; font-size:1.1rem; padding:4px; transition:color 0.2s; }
-  .chat-x:hover { color:#f0ece4; }
-  .chat-msgs {
-    flex:1; overflow-y:auto; padding:14px;
-    display:flex; flex-direction:column; gap:8px; scroll-behavior:smooth;
-  }
-  .chat-msgs::-webkit-scrollbar{width:3px}
-  .chat-msgs::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
-  .cmsg {
-    max-width:84%; padding:9px 13px; border-radius:14px;
-    font-size:0.83rem; line-height:1.5; animation:cmsgIn 0.2s ease;
-  }
-  @keyframes cmsgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-  .cmsg.bot { background:#1c1c1c; border:1px solid #2a2a2a; color:#ddd; align-self:flex-start; border-bottom-left-radius:3px; }
-  .cmsg.user { background:linear-gradient(135deg,#c9a84c,#a07830); color:#000; align-self:flex-end; border-bottom-right-radius:3px; font-weight:500; }
-  .cmsg.typing { background:#1c1c1c; border:1px solid #2a2a2a; align-self:flex-start; padding:11px 14px; }
-  .tdots { display:flex;gap:4px;align-items:center; }
-  .tdots span { width:6px;height:6px;background:#c9a84c;border-radius:50%;animation:tdot 1.2s infinite; }
-  .tdots span:nth-child(2){animation-delay:0.2s} .tdots span:nth-child(3){animation-delay:0.4s}
-  @keyframes tdot{0%,100%{opacity:0.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
-  .chat-qr { display:flex;flex-wrap:wrap;gap:5px;padding:0 12px 8px;flex-shrink:0; }
-  .cqr {
-    background:#1c1c1c; border:1px solid rgba(201,168,76,0.3); color:#c9a84c;
-    padding:5px 11px; border-radius:18px; font-size:0.75rem; cursor:pointer;
-    transition:all 0.2s; font-family:"DM Sans",sans-serif;
-  }
-  .cqr:hover { background:#c9a84c; color:#000; }
-  .chat-inp-area {
-    border-top:1px solid #1e1e1e; padding:10px 12px;
-    display:flex; gap:7px; align-items:center; flex-shrink:0; background:#0f0f0f;
-  }
-  .chat-inp {
-    flex:1; background:#1c1c1c; border:1px solid #2a2a2a; border-radius:20px;
-    padding:9px 14px; color:#f0ece4; font-family:"DM Sans",sans-serif;
-    font-size:0.83rem; outline:none; transition:border-color 0.2s;
-  }
-  .chat-inp:focus{border-color:#c9a84c55}
-  .chat-inp::placeholder{color:#444}
-  .chat-send {
-    width:36px;height:36px; background:linear-gradient(135deg,#c9a84c,#a07830);
-    border:none;border-radius:50%;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s;
-  }
-  .chat-send:hover{transform:scale(1.1)}
-  .chat-send svg{width:15px;height:15px;fill:#000}
-  .chat-send:disabled{opacity:0.4;cursor:not-allowed;transform:none}
-  .chat-pw{text-align:center;font-size:0.62rem;color:#2a2a2a;padding:4px 0 2px;flex-shrink:0;}
-</style>
-
-<!-- Botão flutuante -->
-<button class="chat-fab" onclick="chatToggle()" title="Falar com assistente">
-  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-  <div class="chat-fab-notif" id="chatNotif"></div>
-</button>
-
-<!-- Janela do chat -->
-<div class="chat-win" id="chatWin">
-  <div class="chat-head">
-    <div class="chat-head-av">✂️</div>
-    <div class="chat-head-info">
-      <h3>Assistente · Barbearia Seu Luiz</h3>
-      <p><span class="chat-online"></span> Online agora</p>
-    </div>
-    <button class="chat-x" onclick="chatToggle()">✕</button>
-  </div>
-  <div class="chat-msgs" id="chatMsgs"></div>
-  <div class="chat-qr" id="chatQR"></div>
-  <div class="chat-inp-area">
-    <input class="chat-inp" id="chatInp" placeholder="Digite sua mensagem..." onkeydown="if(event.key==='Enter')chatSend()">
-    <button class="chat-send" id="chatSendBtn" onclick="chatSend()">
-      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-    </button>
-  </div>
-  <div class="chat-pw">✦ Powered by Claude AI ✦</div>
-</div>
-
-<script>
-(function(){
-  var SYSTEM = `Você é o assistente virtual da Barbearia Seu Luiz, localizada em Agrestina, PE. Responda de forma simpática, acolhedora e informal. Use emojis com moderação.
-
-SOBRE A BARBEARIA:
-- Nome: Barbearia Seu Luiz
-- Fundada em: 10 de novembro de 2018
-- História: O nome é uma homenagem ao Seu Luiz, avô do barbeiro Everton — o grande amor da sua vida. Um gesto de carinho e gratidão à sua memória.
-- Endereço: R. Cel. Manoel Alves, 115 — Agrestina, PE
-- WhatsApp: (81) 99542-5522
-
-SOBRE O BARBEIRO:
-- Nome: Everton
-- É muito paciente, carinhoso e dedicado
-- É muito procurado por pais de crianças com TEA (autismo), TDAH e outras condições neurodivergentes
-- Sabe tratar bem cada cliente com respeito e calma
-- Atende crianças e adultos neurodivergentes com excelência
-
-ATENDIMENTO NEURODIVERGENTE:
-- Ambiente calmo, sem barulhos desnecessários e sem julgamentos
-- Atendimento sem pressa, no tempo do cliente
-- Everton é paciente e experiente com crianças e adultos com TEA e TDAH
-- Comunicação clara e gentil durante todo o atendimento
-- Espaço acolhedor para toda a família
-- Corte especial para autistas disponível
-
-SERVIÇOS E PREÇOS:
-- Cabelo: R$ 25
-- Barba: R$ 15
-- Barba Terapia: R$ 25
-- Sobrancelha: R$ 10
-- Pezinho: R$ 10
-- Corte para autista (atendimento neurodivergente especial): R$ 30
-
-HORÁRIOS:
-- Segunda a quinta: 08h às 18h30
-- Sexta e sábado: 08h às 20h
-- Domingo: Fechado
-
-AGENDAMENTO: Quando o cliente quiser agendar, direcione para o WhatsApp: https://wa.me/5581995425522
-
-Responda SOMENTE sobre a barbearia. Se perguntarem sobre outros assuntos, redirecione gentilmente. Nunca invente informações.`;
-
-  var msgs = [];
-  var aberto = false;
-  var carregando = false;
-
-  var qrs = [
-    {l:"✂️ Serviços e preços", t:"Quais são os serviços e preços?"},
-    {l:"🕐 Horários", t:"Quais são os horários de funcionamento?"},
-    {l:"🧩 Atend. neurodivergente", t:"Como é o atendimento para neurodivergentes?"},
-    {l:"👤 Sobre o Everton", t:"Me conta sobre o barbeiro Everton"},
-    {l:"📖 História da barbearia", t:"Qual é a história da barbearia?"},
-    {l:"📅 Agendar", t:"Quero agendar um horário"},
-  ];
-
-  window.chatToggle = function() {
-    aberto = !aberto;
-    document.getElementById('chatWin').classList.toggle('aberto', aberto);
-    document.getElementById('chatNotif').style.display = 'none';
-    if (aberto && msgs.length === 0) {
-      setTimeout(function(){ addBot("Olá! 👋 Sou o assistente virtual da **Barbearia Seu Luiz**. Posso te ajudar com informações sobre serviços, preços, horários, nosso barbeiro Everton e muito mais. Como posso te ajudar?"); }, 350);
-      setTimeout(showQR, 850);
-    }
-  };
-
-  function showQR() {
-    var el = document.getElementById('chatQR');
-    el.innerHTML = '';
-    qrs.forEach(function(q){
-      var b = document.createElement('button');
-      b.className = 'cqr'; b.textContent = q.l;
-      b.onclick = function(){ el.innerHTML=''; chatSend(q.t); };
-      el.appendChild(b);
-    });
-  }
-
-  function addBot(txt) {
-    var el = document.getElementById('chatMsgs');
-    var d = document.createElement('div');
-    d.className = 'cmsg bot';
-    var html = txt
-      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-      .replace(/\n/g,'<br>')
-      .replace(/https:\/\/wa\.me\/\S*/g, '<br><a href="$&" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:#25D366;color:#fff;text-decoration:none;padding:8px 16px;border-radius:20px;font-size:0.8rem;font-weight:600;box-shadow:0 4px 12px rgba(37,211,102,0.3);">📱 Agendar pelo WhatsApp</a>');
-    d.innerHTML = html;
-    el.appendChild(d);
-    el.scrollTop = el.scrollHeight;
-  }
-
-  function addUser(txt) {
-    var el = document.getElementById('chatMsgs');
-    var d = document.createElement('div');
-    d.className = 'cmsg user'; d.textContent = txt;
-    el.appendChild(d);
-    el.scrollTop = el.scrollHeight;
-  }
-
-  function showTyping() {
-    var el = document.getElementById('chatMsgs');
-    var d = document.createElement('div');
-    d.className = 'cmsg typing'; d.id = 'chatTyping';
-    d.innerHTML = '<div class="tdots"><span></span><span></span><span></span></div>';
-    el.appendChild(d); el.scrollTop = el.scrollHeight;
-  }
-
-  function hideTyping() { var e = document.getElementById('chatTyping'); if(e) e.remove(); }
-
-  window.chatSend = async function(override) {
-    if (carregando) return;
-    var inp = document.getElementById('chatInp');
-    var txt = override || inp.value.trim();
-    if (!txt) return;
-    inp.value = '';
-    addUser(txt);
-    document.getElementById('chatQR').innerHTML = '';
-    msgs.push({role:'user', content:txt});
-    carregando = true;
-    document.getElementById('chatSendBtn').disabled = true;
-    showTyping();
-    try {
-      var res = await fetch('/api/chat',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYSTEM,messages:msgs})
-      });
-      var data = await res.json();
-      hideTyping();
-      var reply = (data.content && data.content[0] && data.content[0].text) || 'Desculpe, não consegui responder agora. Tente novamente!';
-      msgs.push({role:'assistant', content:reply});
-      addBot(reply);
-      setTimeout(showQR, 300);
-    } catch(e) {
-      hideTyping();
-      addBot('Ops, tive um problema de conexão. Fale direto pelo WhatsApp: https://wa.me/5581995425522 😊');
-    }
-    carregando = false;
-    document.getElementById('chatSendBtn').disabled = false;
-  };
-
-  // Notificação ao carregar
-  setTimeout(function(){
-    if (!aberto) document.getElementById('chatNotif').style.display = 'block';
-  }, 2500);
-})();
 </script>
 </body>
 </html>
