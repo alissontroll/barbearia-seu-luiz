@@ -445,13 +445,9 @@
         </div>
         <!-- Serviço -->
         <div style="padding:0 4px 14px;">
-          <div style="font-size:11px;letter-spacing:2px;color:#555;text-transform:uppercase;margin-bottom:8px;">Serviço <span style="color:#666;font-size:10px;letter-spacing:0;">(pode escolher mais de um)</span></div>
-          <div id="servico-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div class="srv-card" data-nome="Cabelo" data-valor="25.00" onclick="selecionarServico(this)">✂️ Cabelo<span>R$ 25</span></div>
-            <div class="srv-card" data-nome="Barba" data-valor="15.00" onclick="selecionarServico(this)">🪒 Barba<span>R$ 15</span></div>
-            <div class="srv-card" data-nome="Barba Terapia" data-valor="25.00" onclick="selecionarServico(this)">💆 Barba Terapia<span>R$ 25</span></div>
-            <div class="srv-card" data-nome="Sobrancelha" data-valor="10.00" onclick="selecionarServico(this)">✨ Sobrancelha<span>R$ 10</span></div>
-            <div class="srv-card" data-nome="Pezinho" data-valor="10.00" onclick="selecionarServico(this)" style="grid-column:1/-1;">🦶 Pezinho<span>R$ 10</span></div>
+          <div style="font-size:11px;letter-spacing:2px;color:#2dd4bf;text-transform:uppercase;margin-bottom:8px;">🧩 Atendimento Especializado Neurodivergente</div>
+          <div id="servico-grid" style="display:grid;grid-template-columns:1fr;gap:8px;">
+            <div class="srv-card selecionado" data-nome="Corte Neurodivergente" data-valor="30.00" onclick="selecionarServico(this)" style="border-color:var(--teal);background:rgba(45,212,191,0.12);color:#2dd4bf;">🧩 Corte para Criança Autista / Neurodivergente<span style="color:#2dd4bf;">R$ 30</span></div>
           </div>
           <div id="total-box" style="display:none;margin-top:10px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
             <span style="font-size:13px;color:#aaa;" id="total-servicos-label">Serviços selecionados</span>
@@ -498,6 +494,10 @@
           <button class="btn-agendar-wpp" id="btn-agendar-wpp">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
             Enviar comprovante no WhatsApp
+          </button>
+          <!-- PAGAR NA HORA -->
+          <button id="btn-pagar-presencial" onclick="pagarPresencial()" style="width:100%;background:rgba(255,255,255,0.05);color:#aaa;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;transition:all 0.2s;">
+            💵 Vou pagar na hora da barbearia
           </button>
         </div>
       </div>
@@ -611,6 +611,12 @@ function validarEConfirmarHora() { if(window._validarEConfirmarHora) window._val
 function selecionarServico(el) { if(window._selecionarServico) window._selecionarServico(el); }
 function copiarPix() { if(window._copiarPix) window._copiarPix(); }
 function limparAgendamentos() { if(window._limparAgendamentos) window._limparAgendamentos(); }
+function pagarPresencial() {
+  var resumoEl = document.getElementById('agendar-resumo');
+  var resumo = resumoEl ? resumoEl.innerText : '';
+  var texto = encodeURIComponent('Olá! Gostaria de confirmar meu agendamento:\n\n' + resumo + '\n\n💵 Pagarei presencialmente na barbearia.');
+  window.open('https://wa.me/5581995425522?text=' + texto, '_blank');
+}
 </script>
 
 <!-- CALENDÁRIO: script normal (não-module) para acessar onclick= -->
@@ -672,17 +678,15 @@ function limparAgendamentos() { if(window._limparAgendamentos) window._limparAge
       if (data < hoje0) {
         div.classList.add('passado');
       } else {
-        // Se Firebase ainda não carregou, tratar todos como disponíveis (horário padrão 08-18)
-        // Se carregou e horariosConfig está vazio, idem (barbearia não configurou horários)
-        // Horários: Seg-Qui 08:00-18:00 | Sex-Sáb 08:00-20:00 | Dom fechado
+        // Atendimento Neurodivergente: apenas Segunda (1) e Terça (2)
         var dow = data.getDay();
         var conf;
-        if (dow === 0) {
-          conf = null; // Domingo fechado
-        } else if (dow === 5 || dow === 6) {
-          conf = { aberto: true, abre: '08:00', fecha: '20:00' }; // Sex e Sáb
+        if (dow === 1) {
+          conf = { aberto: true, abre: '08:00', fecha: '18:30' }; // Segunda
+        } else if (dow === 2) {
+          conf = { aberto: true, abre: '08:00', fecha: '18:30' }; // Terça
         } else {
-          conf = { aberto: true, abre: '08:00', fecha: '18:30' }; // Seg a Qui
+          conf = null; // Todos os outros dias fechados
         }
         if (!conf || conf.aberto === false) {
           div.classList.add('fechado');
@@ -1488,5 +1492,6 @@ window._enviarMensagem = function() {
 function esc(t) { return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 </script>
+
 </body>
 </html>
