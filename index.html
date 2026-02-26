@@ -110,7 +110,7 @@
   .card-agendar { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; animation: fadeUp 0.5s ease both; }
   .agendar-header { display: flex; align-items: center; gap: 16px; padding: 16px 20px; cursor: pointer; user-select: none; }
   .agendar-body { overflow: hidden; max-height: 0; transition: max-height 0.45s ease, padding 0.3s ease; padding: 0 16px; }
-  .agendar-body.aberto { max-height: 900px; padding: 0 16px 18px; }
+  .agendar-body.aberto { max-height: 9999px; padding: 0 16px 18px; overflow: visible; }
   .cal-wrap { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 12px; }
   .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   .cal-btn { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.25); border-radius: 8px; color: var(--accent); font-size: 18px; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
@@ -135,6 +135,10 @@
   .hora-pill.bloqueado { opacity: 0.25; cursor: not-allowed; text-decoration: line-through; }
   .hora-pill.bloqueado:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
   .btn-agendar-wpp:hover { background: #1ebe5a; }
+  .srv-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 12px; font-size:13px; cursor:pointer; color:var(--text); display:flex; justify-content:space-between; align-items:center; transition:all 0.18s; }
+  .srv-card:hover { border-color:rgba(201,168,76,0.3); background:rgba(201,168,76,0.07); }
+  .srv-card.selecionado { border-color:var(--accent); background:rgba(201,168,76,0.15); color:var(--accent); font-weight:600; }
+  .srv-card span { font-weight:700; color:var(--accent); }
 
   /* ===== ADMIN PANEL ===== */
   #admin-login-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); align-items: center; justify-content: center; }
@@ -225,11 +229,17 @@
   .horario-edit-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 6px; align-items: center; margin-bottom: 6px; font-size: 12px; }
   .horario-edit-row input { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 7px 10px; color: var(--text); font-size: 12px; outline: none; font-family: inherit; width: 100%; }
   .horario-edit-row .dia-label { color: #888; padding: 0 4px; }
-  .visitantes-chart { display: flex; gap: 4px; align-items: flex-end; height: 60px; margin: 10px 0; }
+  .fin-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px; margin-bottom:8px; }
+  .fin-card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+  .fin-card-nome { font-size:14px; font-weight:600; color:var(--text); }
+  .fin-card-valor { font-size:15px; font-weight:700; color:#25d366; }
+  .fin-card-info { font-size:12px; color:#888; line-height:1.6; }
+  .fin-card-servicos { font-size:12px; color:var(--accent); margin-top:4px; }
   .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
   .chart-bar { width: 100%; background: rgba(201,168,76,0.3); border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.5s; }
   .chart-label { font-size: 9px; color: #555; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -261,6 +271,7 @@
       <button class="admin-tab" onclick="mudarAba('servicos')">✂️ Serviços</button>
       <button class="admin-tab" onclick="mudarAba('horarios')">🕐 Horários</button>
       <button class="admin-tab" onclick="mudarAba('msgs')">💬 Mensagens</button>
+      <button class="admin-tab" onclick="mudarAba('financeiro')">💰 Financeiro</button>
       <button class="admin-tab" onclick="mudarAba('alertas')">🚨 Invasões</button>
     </div>
 
@@ -322,6 +333,26 @@
     <div class="admin-section" id="tab-msgs">
       <div class="admin-section-title">Mensagens dos Clientes <span id="msgs-badge"></span></div>
       <div id="admin-msgs-list"><div class="admin-empty">Nenhuma mensagem ainda.</div></div>
+    </div>
+
+    <!-- FINANCEIRO -->
+    <div class="admin-section" id="tab-financeiro">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="admin-section-title" style="margin:0;">💰 Agendamentos & Pagamentos</div>
+        <button onclick="limparAgendamentos()" style="background:rgba(255,60,60,0.1);color:#ff6060;border:1px solid rgba(255,60,60,0.3);border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:inherit;">🗑 Limpar</button>
+      </div>
+      <!-- Resumo financeiro -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div style="background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.25);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Total Recebido</div>
+          <div style="font-size:20px;font-weight:700;color:#25d366;" id="fin-total">R$ 0,00</div>
+        </div>
+        <div style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.25);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Agendamentos</div>
+          <div style="font-size:20px;font-weight:700;color:var(--accent);" id="fin-count">0</div>
+        </div>
+      </div>
+      <div id="fin-lista"><div class="admin-empty">Nenhum agendamento ainda.</div></div>
     </div>
 
     <!-- ALERTAS -->
@@ -412,6 +443,21 @@
         <div style="padding:0 4px 12px;">
           <input type="text" id="ag-nome" placeholder="Seu nome" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;" onfocus="this.style.borderColor='rgba(201,168,76,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
         </div>
+        <!-- Serviço -->
+        <div style="padding:0 4px 14px;">
+          <div style="font-size:11px;letter-spacing:2px;color:#555;text-transform:uppercase;margin-bottom:8px;">Serviço <span style="color:#666;font-size:10px;letter-spacing:0;">(pode escolher mais de um)</span></div>
+          <div id="servico-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="srv-card" data-nome="Cabelo" data-valor="25.00" onclick="selecionarServico(this)">✂️ Cabelo<span>R$ 25</span></div>
+            <div class="srv-card" data-nome="Barba" data-valor="15.00" onclick="selecionarServico(this)">🪒 Barba<span>R$ 15</span></div>
+            <div class="srv-card" data-nome="Barba Terapia" data-valor="25.00" onclick="selecionarServico(this)">💆 Barba Terapia<span>R$ 25</span></div>
+            <div class="srv-card" data-nome="Sobrancelha" data-valor="10.00" onclick="selecionarServico(this)">✨ Sobrancelha<span>R$ 10</span></div>
+            <div class="srv-card" data-nome="Pezinho" data-valor="10.00" onclick="selecionarServico(this)" style="grid-column:1/-1;">🦶 Pezinho<span>R$ 10</span></div>
+          </div>
+          <div id="total-box" style="display:none;margin-top:10px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:13px;color:#aaa;" id="total-servicos-label">Serviços selecionados</span>
+            <span style="font-size:18px;font-weight:700;color:var(--accent);" id="total-valor">R$ 0</span>
+          </div>
+        </div>
         <!-- Calendário -->
         <div class="cal-wrap">
           <div class="cal-nav">
@@ -427,35 +473,31 @@
         <!-- Horário -->
         <div id="horarios-disponiveis" style="display:none;">
           <div style="font-size:11px;letter-spacing:2px;color:#555;text-transform:uppercase;margin:14px 0 10px;">Escolha o horário</div>
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;text-align:center;">
-              <div style="font-size:11px;color:#888;margin-bottom:6px;">☀️ Manhã</div>
-              <input type="time" id="hora-manha" min="08:00" max="12:00"
-                style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 6px;color:var(--text);font-size:17px;font-weight:600;outline:none;font-family:inherit;text-align:center;cursor:pointer;box-sizing:border-box;"
-                onfocus="this.style.borderColor='rgba(201,168,76,0.5)';document.getElementById('hora-tarde').value='';"
-                onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
-                onchange="confirmarHora(this.value)">
-              <div style="font-size:10px;color:#555;margin-top:4px;">08:00 – 12:00</div>
-            </div>
-            <div style="display:flex;align-items:center;color:#444;font-size:18px;padding-bottom:18px;">|</div>
-            <div style="flex:1;text-align:center;">
-              <div style="font-size:11px;color:#888;margin-bottom:6px;">🌆 Tarde</div>
-              <input type="time" id="hora-tarde" min="14:00" max="20:00"
-                style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 6px;color:var(--text);font-size:17px;font-weight:600;outline:none;font-family:inherit;text-align:center;cursor:pointer;box-sizing:border-box;"
-                onfocus="this.style.borderColor='rgba(201,168,76,0.5)';document.getElementById('hora-manha').value='';"
-                onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
-                onchange="confirmarHora(this.value)">
-              <div style="font-size:10px;color:#555;margin-top:4px;" id="label-tarde">14:00 – 18:30</div>
-            </div>
+          <input type="time" id="hora-input"
+            style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px;color:var(--text);font-size:22px;font-weight:700;outline:none;font-family:inherit;text-align:center;cursor:pointer;box-sizing:border-box;"
+            onfocus="this.style.borderColor='rgba(201,168,76,0.5)'"
+            onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+          <div style="font-size:11px;color:#555;text-align:center;margin-top:6px;line-height:1.8;" id="label-horario">
+            ☀️ Manhã: 08:00–11:59 &nbsp;|&nbsp; 🌆 Tarde: 14:00–18:30<br>🍽️ Almoço: 12:00–13:59 (fechado)
           </div>
-          <div style="font-size:11px;color:#444;text-align:center;margin-top:10px;padding:6px;background:rgba(255,255,255,0.03);border-radius:8px;">🍽️ Almoço: 12:00 – 14:00</div>
+          <button onclick="validarEConfirmarHora()" style="width:100%;margin-top:12px;background:rgba(201,168,76,0.15);color:var(--accent);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:13px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;">✅ Confirmar horário</button>
+          <div id="hora-erro" style="display:none;background:rgba(255,60,60,0.15);border:1px solid rgba(255,60,60,0.4);border-radius:8px;padding:10px 12px;font-size:13px;color:#ff8080;text-align:center;margin-top:8px;"></div>
         </div>
         <!-- Confirmar -->
         <div id="agendar-confirmar" style="display:none;margin-top:14px;">
           <div class="agendar-resumo" id="agendar-resumo"></div>
+          <!-- PIX -->
+          <div id="pix-section" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;margin-bottom:12px;text-align:center;">
+            <div style="font-size:11px;letter-spacing:2px;color:#555;text-transform:uppercase;margin-bottom:12px;">💳 Pagar com PIX</div>
+            <div id="pix-qrcode" style="width:190px;height:190px;border-radius:10px;background:#fff;padding:8px;margin-bottom:12px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;"></div>
+            <div style="font-size:12px;color:#888;margin-bottom:6px;">Everton José da Silva · Banco Pan</div>
+            <div id="pix-codigo" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;font-size:10px;color:#aaa;word-break:break-all;text-align:left;margin-bottom:8px;line-height:1.6;"></div>
+            <button onclick="copiarPix()" style="width:100%;background:rgba(201,168,76,0.15);color:var(--accent);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:4px;">📋 Copiar código PIX</button>
+            <div id="pix-copiado" style="font-size:11px;color:#25d366;display:none;margin-top:4px;">✅ Copiado!</div>
+          </div>
           <button class="btn-agendar-wpp" id="btn-agendar-wpp">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-            Confirmar pelo WhatsApp
+            Enviar comprovante no WhatsApp
           </button>
         </div>
       </div>
@@ -564,7 +606,11 @@ function salvarHorarios() { if(window._salvarHorarios) window._salvarHorarios();
 function enviarMensagem() { if(window._enviarMensagem) window._enviarMensagem(); }
 function mudaMes(dir) { if(window._mudaMes) window._mudaMes(dir); }
 function selecionarHora(el) { if(window._selecionarHora) window._selecionarHora(el); }
-function confirmarHora(hora) { if(window.confirmarHora) window.confirmarHora(hora); }
+function confirmarHora(hora, periodo) { if(window.confirmarHora) window.confirmarHora(hora, periodo); }
+function validarEConfirmarHora() { if(window._validarEConfirmarHora) window._validarEConfirmarHora(); }
+function selecionarServico(el) { if(window._selecionarServico) window._selecionarServico(el); }
+function copiarPix() { if(window._copiarPix) window._copiarPix(); }
+function limparAgendamentos() { if(window._limparAgendamentos) window._limparAgendamentos(); }
 </script>
 
 <!-- CALENDÁRIO: script normal (não-module) para acessar onclick= -->
@@ -661,19 +707,46 @@ function confirmarHora(hora) { if(window.confirmarHora) window.confirmarHora(hor
   function mostrarHorarios(abre, fecha, dt) {
     var wrap = document.getElementById('horarios-disponiveis');
     var dow = dt.getDay();
-    var fimTarde = (dow === 5 || dow === 6) ? '20:00' : '18:30';
-    // Ajustar max do input da tarde conforme o dia
-    document.getElementById('hora-tarde').max = fimTarde;
-    document.getElementById('label-tarde').textContent = '14:00 – ' + fimTarde;
-    // Limpar valores anteriores
-    document.getElementById('hora-manha').value = '';
-    document.getElementById('hora-tarde').value = '';
+    var fimStr = (dow === 5 || dow === 6) ? '20:00' : '18:30';
+    document.getElementById('hora-input').value = '';
+    document.getElementById('label-horario').innerHTML =
+      '☀️ Manhã: 08:00–11:59 &nbsp;|&nbsp; 🌆 Tarde: 14:00–' + fimStr + '<br>🍽️ Almoço: 12:00–13:59 (fechado)';
     wrap.style.display = 'block';
     document.getElementById('agendar-confirmar').style.display = 'none';
   }
 
-  window.confirmarHora = function(hora) {
-    if (!hora) return;
+  var _ultimaHoraValidada = '';
+  window.confirmarHora = function() {};
+
+  window._validarEConfirmarHora = function() {
+    var hora = document.getElementById('hora-input').value;
+
+    function mostrarErro(msg) {
+      var err = document.getElementById('hora-erro');
+      err.textContent = msg;
+      err.style.display = 'block';
+      setTimeout(function(){ err.style.display = 'none'; }, 4000);
+    }
+
+    if (!hora) { mostrarErro('⚠️ Escolha um horário primeiro!'); return; }
+
+    var partes = hora.split(':').map(Number);
+    var minutos = partes[0]*60 + partes[1];
+
+    // Android pode retornar formato 12h: se hora < 6h, provavelmente é PM (ex: 03:00 = 15:00)
+    if (partes[0] < 6) {
+      minutos += 12*60;
+      hora = String(partes[0] + 12).padStart(2,'0') + ':' + String(partes[1]).padStart(2,'0');
+    }
+    var dow = dataSelecionada ? dataSelecionada.getDay() : 1;
+    var fimMin = (dow === 5 || dow === 6) ? 20*60 : 18*60+30;
+    var fimStr = (dow === 5 || dow === 6) ? '20:00' : '18:30';
+
+    if (minutos < 8*60) { mostrarErro('⚠️ Horário mínimo é 08:00!'); return; }
+    if (minutos >= 12*60 && minutos < 14*60) { mostrarErro('🍽️ Horário de almoço! Escolha até 11:59 ou a partir das 14:00.'); return; }
+    if (minutos > fimMin) { mostrarErro('⚠️ Horário máximo é ' + fimStr + '!'); return; }
+
+    document.getElementById('hora-erro').style.display = 'none';
     horaSelecionada = hora;
     atualizarResumo();
   };
@@ -681,15 +754,65 @@ function confirmarHora(hora) { if(window.confirmarHora) window.confirmarHora(hor
   function atualizarResumo() {
     if (!dataSelecionada || !horaSelecionada) return;
     var dataStr = dataSelecionada.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
-    document.getElementById('agendar-resumo').innerHTML = '📅 <strong>' + dataStr + '</strong><br>⏰ <strong>' + horaSelecionada + '</strong>';
+    var total = servicosSelecionados.reduce(function(s, i){ return s + i.valor; }, 0);
+    var resumoHtml = '📅 <strong>' + dataStr + '</strong><br>⏰ <strong>' + horaSelecionada + '</strong>';
+    if (servicosSelecionados.length > 0) {
+      resumoHtml += '<br>✂️ <strong>' + servicosSelecionados.map(function(s){ return s.nome; }).join(', ') + '</strong>';
+      resumoHtml += '<br>💰 Total: <strong style="color:var(--accent)">R$ ' + total.toFixed(2).replace('.',',') + '</strong>';
+    }
+    document.getElementById('agendar-resumo').innerHTML = resumoHtml;
     document.getElementById('agendar-confirmar').style.display = 'block';
+
+    // PIX
+    if (servicosSelecionados.length > 0 && total > 0) {
+      var pixCode = gerarPixCopiaECola(total);
+      document.getElementById('pix-codigo').textContent = pixCode;
+      // Gerar QR Code localmente com QRCode.js
+      var qrDiv = document.getElementById('pix-qrcode');
+      qrDiv.innerHTML = '';
+      new QRCode(qrDiv, {
+        text: pixCode,
+        width: 174,
+        height: 174,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      document.getElementById('pix-section').style.display = 'block';
+    } else {
+      document.getElementById('pix-section').style.display = 'none';
+    }
+
     var btn = document.getElementById('btn-agendar-wpp');
     btn.onclick = function() {
       var nome = (document.getElementById('ag-nome').value || '').trim();
-      var msg = encodeURIComponent('Olá! Gostaria de agendar um horário na Barbearia Seu Luiz.\n' +
-        (nome ? 'Nome: ' + nome + '\n' : '') +
-        'Data: ' + dataStr + '\n' +
-        'Horário: ' + horaSelecionada);
+      var servicos = servicosSelecionados.length > 0
+        ? servicosSelecionados.map(function(s){ return s.nome + ' (R$ ' + s.valor.toFixed(2).replace('.',',') + ')'; }).join(', ')
+        : 'não informado';
+      var totalStr = total > 0 ? 'R$ ' + total.toFixed(2).replace('.',',') : '';
+
+      // Salvar no Firebase
+      if (window._push && window._ref && window._db) {
+        window._push(window._ref(window._db, 'agendamentos'), {
+          nome: nome || 'Não informado',
+          servicos: servicosSelecionados.map(function(s){ return s.nome; }).join(', '),
+          total: total,
+          data: dataStr,
+          horario: horaSelecionada,
+          timestamp: Date.now(),
+          status: 'aguardando_comprovante'
+        });
+      }
+
+      var msg = encodeURIComponent(
+        '✅ Olá Everton! Fiz meu agendamento e o pagamento via PIX.\n\n' +
+        '👤 Nome: ' + (nome || 'não informado') + '\n' +
+        '✂️ Serviço(s): ' + servicos + '\n' +
+        (totalStr ? '💰 Total pago: ' + totalStr + '\n' : '') +
+        '📅 Data: ' + dataStr + '\n' +
+        '⏰ Horário: ' + horaSelecionada + '\n\n' +
+        '📎 Segue o comprovante de pagamento em anexo!'
+      );
       window.open('https://wa.me/5581995425522?text=' + msg, '_blank');
     };
   }
@@ -699,6 +822,97 @@ function confirmarHora(hora) { if(window.confirmarHora) window.confirmarHora(hor
     if (calMes > 11) { calMes = 0; calAno++; }
     if (calMes < 0)  { calMes = 11; calAno--; }
     renderCal();
+  };
+
+  // ===== SERVIÇOS (multi-seleção) =====
+  var servicosSelecionados = [];
+
+  window._selecionarServico = function(el) {
+    var nome = el.dataset.nome;
+    var valor = parseFloat(el.dataset.valor);
+    var idx = servicosSelecionados.findIndex(function(s){ return s.nome === nome; });
+    if (idx >= 0) {
+      // Desselecionar
+      servicosSelecionados.splice(idx, 1);
+      el.classList.remove('selecionado');
+    } else {
+      // Selecionar
+      servicosSelecionados.push({ nome: nome, valor: valor });
+      el.classList.add('selecionado');
+    }
+    // Atualizar total
+    var total = servicosSelecionados.reduce(function(s, i){ return s + i.valor; }, 0);
+    var totalBox = document.getElementById('total-box');
+    if (servicosSelecionados.length > 0) {
+      totalBox.style.display = 'flex';
+      document.getElementById('total-servicos-label').textContent = servicosSelecionados.map(function(s){ return s.nome; }).join(' + ');
+      document.getElementById('total-valor').textContent = 'R$ ' + total.toFixed(2).replace('.',',');
+    } else {
+      totalBox.style.display = 'none';
+    }
+    atualizarResumo();
+  };
+
+  // ===== PIX =====
+  // Chave PIX: telefone 81995425522
+  function gerarPixCopiaECola(valor) {
+    var chave = '+5581995425522';
+    var nome = 'Everton Jose da Silva';
+    var cidade = 'AGRESTINA';
+    var txid = 'BARBEARIASEULUIZ';
+    var valorStr = valor.toFixed(2);
+
+    function tlv(id, value) {
+      var len = String(value.length).padStart(2, '0');
+      return id + len + value;
+    }
+
+    var merchantAccInfo = tlv('00', 'BR.GOV.BCB.PIX') + tlv('01', chave);
+    var payload =
+      tlv('00', '01') +
+      tlv('26', merchantAccInfo) +
+      tlv('52', '0000') +
+      tlv('53', '986') +
+      tlv('54', valorStr) +
+      tlv('58', 'BR') +
+      tlv('59', nome.substring(0,25)) +
+      tlv('60', cidade) +
+      tlv('62', tlv('05', txid.substring(0,25))) +
+      '6304';
+
+    // CRC16
+    function crc16(str) {
+      var crc = 0xFFFF;
+      for (var i = 0; i < str.length; i++) {
+        crc ^= str.charCodeAt(i) << 8;
+        for (var j = 0; j < 8; j++) {
+          crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+        }
+      }
+      return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4,'0');
+    }
+
+    return payload + crc16(payload);
+  }
+
+  window._copiarPix = function() {
+    var codigo = document.getElementById('pix-codigo').textContent;
+    navigator.clipboard.writeText(codigo).then(function() {
+      var el = document.getElementById('pix-copiado');
+      el.style.display = 'block';
+      setTimeout(function(){ el.style.display = 'none'; }, 3000);
+    }).catch(function() {
+      // fallback
+      var ta = document.createElement('textarea');
+      ta.value = codigo;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      var el = document.getElementById('pix-copiado');
+      el.style.display = 'block';
+      setTimeout(function(){ el.style.display = 'none'; }, 3000);
+    });
   };
 
   // Aguardar Firebase ficar disponível e buscar horários
@@ -1106,6 +1320,48 @@ function carregarAlertas() {
 window._limparAlertas = function() {
   if (!confirm('Limpar histórico de tentativas?')) return;
   remove(alertasRef);
+};
+
+// ===== FINANCEIRO =====
+var agendRef = ref(db, 'agendamentos');
+
+onValue(agendRef, function(snap) {
+  var lista = document.getElementById('fin-lista');
+  var totalEl = document.getElementById('fin-total');
+  var countEl = document.getElementById('fin-count');
+  if (!lista) return;
+  if (!snap.exists()) {
+    lista.innerHTML = '<div class="admin-empty">Nenhum agendamento ainda.</div>';
+    if (totalEl) totalEl.textContent = 'R$ 0,00';
+    if (countEl) countEl.textContent = '0';
+    return;
+  }
+  var items = [];
+  snap.forEach(function(child) {
+    items.push(Object.assign({ _key: child.key }, child.val()));
+  });
+  items.sort(function(a, b) { return b.timestamp - a.timestamp; });
+
+  var totalGeral = items.reduce(function(s, i) { return s + (i.total || 0); }, 0);
+  if (totalEl) totalEl.textContent = 'R$ ' + totalGeral.toFixed(2).replace('.', ',');
+  if (countEl) countEl.textContent = items.length;
+
+  lista.innerHTML = items.map(function(a) {
+    return '<div class="fin-card">' +
+      '<div class="fin-card-header">' +
+        '<div class="fin-card-nome">👤 ' + esc(a.nome || 'Não informado') + '</div>' +
+        '<div class="fin-card-valor">R$ ' + (a.total || 0).toFixed(2).replace('.', ',') + '</div>' +
+      '</div>' +
+      '<div class="fin-card-servicos">✂️ ' + esc(a.servicos || '-') + '</div>' +
+      '<div class="fin-card-info">📅 ' + esc(a.data || '') + ' · ⏰ ' + esc(a.horario || '') + '</div>' +
+      '<div class="fin-card-info" style="margin-top:4px;color:#555;font-size:11px;">' + new Date(a.timestamp).toLocaleString('pt-BR') + '</div>' +
+    '</div>';
+  }).join('');
+});
+
+window._limparAgendamentos = function() {
+  if (!confirm('Limpar todos os agendamentos?')) return;
+  remove(agendRef);
 };
 
 // ===== SITE PÚBLICO =====
